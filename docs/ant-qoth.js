@@ -77,6 +77,8 @@ function setGlobals() {
 	paletteChoice = 0
 	initialiseColorPalettes()
 	initialiseSupplementaryCanvases()
+	antMarkerImage = new Image();
+	antMarkerImage.src = "./marker.png";
 }
 
 function initialiseColorPalettes() {
@@ -570,6 +572,7 @@ function displayLeaderboard() {
 	var	content = ''
 	players.forEach(function(player) {
 		var checkboxID = 'included_' + player.id
+		var markerboxID = 'showmarker_' + player.id
 		if (player.disqualified) {
 			content += '<tr class="greyed_row"><td><a href="#disqualified_table">DISQUALIFIED</a>'
 		} else {
@@ -583,15 +586,20 @@ function displayLeaderboard() {
 		content += '<td>' + player.imageTags[paletteChoice] +
 			'<td>' + player.score +
 			'<td>' + Math.floor(player.confidence*100) + '%' +
-			'<td><input id=' + checkboxID + ' type=checkbox>'
+			'<td><input id=' + checkboxID + ' type=checkbox>' + 
+			'<td><input id=' + markerboxID + ' type=checkbox' + (player.showmark?' checked>':'>')
 	})
 	$('#leaderboard_body').html(content)
 	players.forEach(function(player) {
 		var checkboxID = '#included_' + player.id
+		var markerboxID = '#showmarker_' + player.id
 		$(checkboxID).prop('checked', player.included)
 		$(checkboxID).prop('disabled', player.disqualified)
 		$(checkboxID).change(function() {
 			player.included = $(checkboxID).prop('checked')
+		})
+		$(markerboxID).change(function() {
+			player.showmark = $(markerboxID).prop('checked')
 		})
 	})
 }
@@ -742,6 +750,34 @@ function paintAnt(x, y, ant) {
 function displayArena() {	
 	putImageToArenaCanvas()
 	displayCtx.drawImage(arenaCanvas, 0, 0, arenaWidth, arenaHeight, 0, 0, displayCanvas.width, displayCanvas.height)
+	population.forEach(function(ant) {
+		if(ant.player.showmark) {
+			displayCtx.drawImage(antMarkerImage,Math.round(ant.x/2),Math.round(ant.y/2-16))
+			var x = Math.round(ant.x/2+ 9)
+			var y = Math.round(ant.y/2-13)
+			for(var xx=x; xx<=x+2;xx+=2) { 
+				for(var yy=y; yy<=y+2;yy+=2) { 
+					for(var xo=0; xo <= 1; xo++) {
+						for(var yo=0; yo <= 1; yo++) {
+							displayCtx.drawImage(ant.player.avatars[paletteChoice], (xx-x)/2, (yy-y)/2, 1, 1, xx+xo, yy+yo, 1, 1)
+						}
+					}
+				}
+			}
+			y-=4
+			displayCtx.fillStyle = "rgba(120,120,255,1)";
+			switch(ant.type) {
+				case 5:
+					displayCtx.fillStyle = "rgba(255,180,0,1)";
+					break;
+			}
+			displayCtx.fillRect(x, y, ant.type, 2);
+			displayCtx.fillStyle = "rgba(0,0,0,1)";
+			if(ant.type != 5 && ant.food > 0) {
+				displayCtx.fillRect(x, y+13, 2, 2);
+			}
+		}
+	})
 	if (zoomed) {
 		displayZoomedArea()
 	}

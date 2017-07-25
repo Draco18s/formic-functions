@@ -738,7 +738,7 @@ function fillZoomCanvas() {
 			var cell = arena[wrappedX + wrappedY*arenaWidth]
 			paintTile(x, y, cell.color)
 			if (cell.food || (cell.ant && cell.ant.type < 5 && cell.ant.food)) {
-				paintFood(x, y)
+				paintFood(x, y, cell.color == 8)
 			}
 			if (cell.ant) {
 				paintAnt(x, y, cell.ant)
@@ -751,7 +751,16 @@ function paintTile(x, y, color) {
 	zoomCtx.drawImage(paletteCanvases[paletteChoice], color-1, 0, 1, 1, x * zoomCellSideLength, y * zoomCellSideLength, zoomCellSideLength, zoomCellSideLength) 
 }
 
-function paintFood(x, y) {
+function paintFood(x, y, drawWhite) {
+	if(drawWhite) {
+		zoomCtx.fillStyle = 'rgb(255, 255, 255)'
+		zoomCtx.beginPath()
+		zoomCtx.moveTo((x+1) * zoomCellSideLength+2,                      y * zoomCellSideLength + zoomCellSideLength/2)
+		zoomCtx.lineTo(x     * zoomCellSideLength + zoomCellSideLength/2, y * zoomCellSideLength-2)
+		zoomCtx.lineTo(x     * zoomCellSideLength-2,                      y * zoomCellSideLength + zoomCellSideLength/2)
+		zoomCtx.lineTo(x     * zoomCellSideLength + zoomCellSideLength/2, (y+1) * zoomCellSideLength+2)
+		zoomCtx.fill()
+	}
 	zoomCtx.fillStyle = 'rgb(0, 0, 0)'
 	zoomCtx.beginPath()
 	zoomCtx.moveTo((x+1) * zoomCellSideLength, y * zoomCellSideLength + zoomCellSideLength/2)
@@ -808,8 +817,10 @@ function displayArena() {
 					break;
 			}
 			displayCtx.fillRect(x, y, ant.type, 2);
-			displayCtx.fillStyle = "rgba(0,0,0,1)";
+			displayCtx.fillStyle = "rgba(255,255,255,1)";
 			if(ant.type != 5 && ant.food > 0) {
+				displayCtx.fillRect(x-1, y+12, 4, 4);
+				displayCtx.fillStyle = "rgba(0,0,0,1)";
 				displayCtx.fillRect(x, y+13, 2, 2);
 			}
 		}

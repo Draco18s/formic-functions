@@ -776,6 +776,7 @@ function paintAnt(x, y, ant) {
 			zoomCtx.fillStyle = "rgba(255,180,0,1)";
 			break;
 	}
+	size = zoomCellSideLength * .3;
 	x = (x+0.5)*zoomCellSideLength - size;
 	y = (y+0.5)*zoomCellSideLength + 6;
 	var w = size/2*Math.min(ant.type,4);
@@ -831,6 +832,9 @@ function displayZoomedArea() {
 
 function startNewGame() {
 	movesPerGame = $('#moves_per_game').val()
+	pauseDebug = $('#pauseDebug').prop('checked')
+	doPauseAfter = $('#doPauseAfter').prop('checked')
+	pauseAfterNMoves = parseInt($('#moves_before_pause').val(), 10)
 	gameInProgress = true
 	$('#current_game_table').show()
 	if ($('#seeded_random').prop('checked')) {

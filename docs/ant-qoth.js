@@ -634,6 +634,12 @@ function disqualify(player, reason, input, response) {
 	displayGameTable()
 	displayLeaderboard()
 	if(pauseDebug) {
+		if(!display) {
+			$('.show_when_no_display').hide(300)
+			$('.hide_when_no_display').show(300)
+			display = true
+			batchSize = 1
+		}
 		continuousMoves = false
 		$('#play').prop('disabled', false)
 		$('#pause').prop('disabled', true)
@@ -942,6 +948,12 @@ function processAnts() {
 		$('#completed_moves_area').html(moveCounter + ' moves of ' + movesPerGame + ' completed.')
 	}
 	if(doPauseAfter && moveCounter == pauseAfterNMoves) {
+		if(!display) {
+			$('.show_when_no_display').hide(0)
+			$('.hide_when_no_display').show(0)
+			display = true
+			batchSize = 1
+		}
 		continuousMoves = false
 		$('#play').prop('disabled', false)
 		$('#pause').prop('disabled', true)

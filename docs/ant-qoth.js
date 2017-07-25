@@ -27,6 +27,9 @@ function setGlobals() {
 	delay = parseInt($('#delay').val(), 10)
 	processingStartTime = 0
 	debug = $('#debug').prop('checked')
+	pauseDebug = $('#pauseDebug').prop('checked')
+	doPauseAfter = $('#doPauseAfter').prop('checked')
+	pauseAfterNMoves = parseInt($('#moves_before_pause').val(), 10)
 	currentAntIndex = 0
 	maxPlayers = parseInt($('#max_players').val(), 10)
 	display = true
@@ -505,6 +508,15 @@ function initialiseInterface() {
 	$('#debug').change(function() {
 		debug = $('#debug').prop('checked')
 	})
+	$('#pauseDebug').change(function() {
+		pauseDebug = $('#pauseDebug').prop('checked')
+	})
+	$('#doPauseAfter').change(function() {
+		doPauseAfter = $('#doPauseAfter').prop('checked')
+	})
+	$('#moves_before_pause').change(function() {
+		pauseAfterNMoves = parseInt($('#moves_before_pause').val(), 10)
+	})
 	$('#seeded_random').prop('checked', false)
 	$('#seeded_random').change(function() {
 		$('#seed').prop('disabled', !$('#seeded_random').prop('checked'))
@@ -621,6 +633,12 @@ function disqualify(player, reason, input, response) {
 	sortLeaderboard()
 	displayGameTable()
 	displayLeaderboard()
+	if(pauseDebug) {
+		continuousMoves = false
+		$('#play').prop('disabled', false)
+		$('#pause').prop('disabled', true)
+		clearTimeout(timeoutID)
+	}
 }
 
 function removeFromDisqualifiedTable(player) {
@@ -745,6 +763,17 @@ function paintAnt(x, y, ant) {
 	}
 	var player = ant.player
 	zoomCtx.drawImage(player.avatars[paletteChoice], 0, 0, 2, 2, (x+0.5)*zoomCellSideLength - size, (y+0.5)*zoomCellSideLength - size, size*2, size*2)
+	
+	zoomCtx.fillStyle = "rgba(120,120,255,1)";
+	switch(ant.type) {
+		case 5:
+			zoomCtx.fillStyle = "rgba(255,180,0,1)";
+			break;
+	}
+	x = (x+0.5)*zoomCellSideLength - size;
+	y = (y+0.5)*zoomCellSideLength + 6;
+	var w = size/2*Math.min(ant.type,4);
+	zoomCtx.fillRect(x, y, w, 6);
 }
 
 function displayArena() {	
@@ -911,6 +940,12 @@ function processAnts() {
 		$('#completed_moves_area').html('1 move of ' + movesPerGame + ' completed.')
 	} else {
 		$('#completed_moves_area').html(moveCounter + ' moves of ' + movesPerGame + ' completed.')
+	}
+	if(doPauseAfter && moveCounter == pauseAfterNMoves) {
+		continuousMoves = false
+		$('#play').prop('disabled', false)
+		$('#pause').prop('disabled', true)
+		clearTimeout(timeoutID)	
 	}
 	if (moveCounter >= movesPerGame) {
 		gameOver()

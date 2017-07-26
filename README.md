@@ -26,3 +26,8 @@ And shows if workers are carrying food
 
 This is helpful for bot-writers in figuring out what their ants are doing and locating them all.
 
+Additionally, food in the zoom view has been given a white outline so it is visible on all colors
+
+![Food outline](https://s1.postimg.org/jtsbryndb/black-food.png)
+
+Zoom view also has a marker for Worker Type (same as the marker icon, drawn below the ant). The above image shows a Type 1 ant.

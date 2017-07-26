@@ -4,7 +4,7 @@ This is the code behind the JavaScript programming contest hosted on Programming
 
 ## [View/enter the contest here.](https://codegolf.stackexchange.com/questions/135102/formic-functions-ant-queen-of-the-hill-contest)
 
-## [Run modified controller]([https://draco18s.github.io/formic-functions/)
+## [Run modified controller](https://draco18s.github.io/formic-functions/)
 
 ### Modifications from official
 

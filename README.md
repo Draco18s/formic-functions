@@ -1,12 +1,12 @@
 # Formic Functions - Ant Queen of the Hill contest
 
-## Not yet complete
-
 This is the code behind the JavaScript programming contest hosted on Programming Puzzles & Code Golf Stack Exchange.
 
-[ LINK TO BE ADDED ONCE CONTEST IS POSTED ]
+## [View/enter the contest here.](https://codegolf.stackexchange.com/questions/135102/formic-functions-ant-queen-of-the-hill-contest)
 
-# Modifications from official
+## [Run modified controller]([https://draco18s.github.io/formic-functions/)
+
+### Modifications from official
 
 The changes adds a marker that can be turned on or off for each faction:
 

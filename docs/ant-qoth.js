@@ -104,14 +104,14 @@ function initialiseColorPalettes() {
 	
 	arenaColor = {}
 	arenaColor.tile = [
-		[255, 255, 255],
-		[218, 218, 218],
-		[181, 181, 181],
-		[144, 144, 144],
-		[108, 108, 108],
-		[72, 72, 72],
-		[36, 36, 36],
-		[0, 0, 0]
+		[255, 255, 255],//white
+		[240, 228, 66],//yellow
+		[204, 121, 167],//pink
+		[86, 180, 233],//teal
+		[213, 94, 0],//orange
+		[0, 158, 115],//green
+		[0, 114, 178],//blue
+		[0, 0, 0]//black
 	]
 	arenaColor.food = arenaColor.tile[7]
 	arenaColor.ant = arenaColor.tile[7]
@@ -120,12 +120,12 @@ function initialiseColorPalettes() {
 	arenaColor = {}
 	arenaColor.tile = [
 		[255, 255, 255],
-		[204, 121, 167],
-		[213, 94, 0],
-		[0, 114, 178],
-		[240, 228, 66],
-		[0, 158, 115],
-		[86, 180, 233],
+		[218, 218, 218],
+		[181, 181, 181],
+		[144, 144, 144],
+		[108, 108, 108],
+		[72, 72, 72],
+		[36, 36, 36],
 		[0, 0, 0]
 	]
 	arenaColor.food = arenaColor.tile[7]

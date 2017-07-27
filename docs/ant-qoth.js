@@ -540,6 +540,28 @@ function initialiseInterface() {
 			$('#code_up_to_date').prop('disabled', false)
 		}
 	})
+	$('#pass_debug_value').click(function() {
+		players.forEach(function(player) {
+			if (player.id === 0) {
+				var testCode = $('#new_challenger_debug').val()
+				var testInput = antFunctionMaker(testCode);
+				var response;
+				try {
+					var parsedInput = maskedEval(testInput);
+					var parameters = {}
+					parameters.view = parsedInput
+					if (player.id === 0) {
+						parameters.console = console
+					}
+					//$('#response').val(JSON.stringify(parsedInput));
+					response = maskedEval(player.antFunction, parameters);
+				} catch(e) {
+					response = e;
+				}
+				$('#response').val(JSON.stringify(response));
+			}
+		})
+	})
 }
 
 function showLoadedTime() {

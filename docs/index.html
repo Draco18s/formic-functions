@@ -125,6 +125,25 @@
 		<div><button id='code_up_to_date' disabled='true'>Code up to date</button></div>
 		<textarea id='new_challenger_text' maxlength='30000' placeholder='(Optional - type or paste function body to be tested here)' rows='30' spellcheck='false'></textarea>
 	</div>
+	<div>
+		<h3 id='new_challenger_debug_heading'>Test New Challenger Input</h3>
+		<p>Function body that returns a constructed <tt>view</tt> object to be passed to the New Challenger ant method body.<br>
+		This will not consume turns and will output the return in the lower box when the Test button is clicked.</p>
+		<textarea id='new_challenger_debug' maxlength='600' placeholder='' rows='10' spellcheck='false'>
+return [
+{"color":1,"food":0,"ant":null},
+{"color":1,"food":0,"ant":null},
+{"color":1,"food":0,"ant":null},
+{"color":1,"food":0,"ant":null},
+{"color":1,"food":0,"ant":{"food":0,"type":5,"friend":true}},
+{"color":1,"food":0,"ant":null},
+{"color":1,"food":0,"ant":null},
+{"color":1,"food":0,"ant":null},
+{"color":1,"food":0,"ant":null}]
+		</textarea>
+		<div><button id='pass_debug_value'>Test</button></div>
+		<textarea id="response" readonly></textarea>
+	</div>
 	
 	<a href='https://github.com/Draco18s/formic-functions' target='_blank'>Source code available on GitHub</a><br/>
 	<a href='https://github.com/trichoplax/formic-functions' target='_blank'>Forked from Trichoplax's controller</a>

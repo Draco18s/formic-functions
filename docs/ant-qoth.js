@@ -976,7 +976,7 @@ function processAnts() {
 		if (currentAntIndex === 0) {
 			moveCounter++
 		}
-		if (moveCounter >= movesPerGame) {
+		if (moveCounter >= movesPerGame (doPauseAfter && moveCounter == pauseAfterNMoves)) {
 			break
 		}
 	}

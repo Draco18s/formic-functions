@@ -31,3 +31,7 @@ Additionally, food in the zoom view has been given a white outline so it is visi
 ![Food outline](https://s1.postimg.org/jtsbryndb/black-food.png)
 
 Zoom view also has a marker for Worker Type (same as the marker icon, drawn below the ant). The above image shows a Type 1 ant.
+
+![dance floor ant GIF](https://i.stack.imgur.com/oyEfT.gif)
+
+Not actual game footage.

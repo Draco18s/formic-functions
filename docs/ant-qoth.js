@@ -7,15 +7,23 @@
 $(load)
 
 function load() {
+	suppressButtonsUntilLoaded()
+	confirmRefresh()
 	setGlobals()
 	loadPlayers()
-	initialiseInterface()
+}
+
+function confirmRefresh() {
+	window.addEventListener('beforeunload', function(e) {
+		e.returnValue = ''
+	})
 }
 
 function setGlobals() {
 	qid = 135102
 	site = 'codegolf'
 	players = []
+	invalidPlayers = []
 	gameStats = []
 	disqualifiedInfo = []
 	population = []
@@ -104,19 +112,19 @@ function initialiseColorPalettes() {
 	
 	arenaColor = {}
 	arenaColor.tile = [
-		[255, 255, 255],//white
-		[240, 228, 66],//yellow
-		[204, 121, 167],//pink
-		[86, 180, 233],//teal
-		[213, 94, 0],//orange
-		[0, 158, 115],//green
-		[0, 114, 178],//blue
-		[0, 0, 0]//black
+		[255, 255, 255],
+		[240, 228, 66],
+		[204, 121, 167],
+		[86, 180, 233],
+		[213, 94, 0],
+		[0, 158, 115],
+		[0, 114, 178],
+		[0, 0, 0]
 	]
 	arenaColor.food = arenaColor.tile[7]
 	arenaColor.ant = arenaColor.tile[7]
 	arenaColors.push(arenaColor)
-	
+		
 	arenaColor = {}
 	arenaColor.tile = [
 		[255, 255, 255],
@@ -265,8 +273,15 @@ function colorPlayers() {
 
 /* HELPERS */
 
-function antFunctionMaker(functionBody) {
-	return (new Function('with(this) { ' + functionBody + '\n}'))
+function antFunctionMaker(player) {
+	try {
+		antFunction = new Function('with(this) { ' + player.code + '\n}')
+	}
+	catch (e) {
+		antFunction = null
+		invalidPlayers.push({player:player, errorMessage:e})
+	}
+	return antFunction
 }
 
 function maskedEval(antFunction, params) {	//thanks http://stackoverflow.com/a/543820 (with the warning not to use this with untrusted code)
@@ -287,8 +302,9 @@ function decode(html) {
 
 cryptoRandom = (function() {
 	var a = new Uint32Array(16384)
-	var i = a.length - 1
+	var i = 0
 	var crypto = window.crypto || window.msCrypto
+	crypto.getRandomValues(a)
 	return function(n) {
 		i = (i + 1) % a.length
 		if (i === 0) {
@@ -310,35 +326,44 @@ seededRandomInitialiser = function(seed) {		// thanks https://en.wikipedia.org/w
 }
 
 function shuffle(array) {
-	for (var t=0; t<2; t++) {	// Shuffle twice to disguise bias in the random number generator
-		for (var i=0; i<array.length; i++) {
-			var target = random(array.length - i) + i
-			var temp = array[i]
-			array[i] = array[target]
-			array[target] = temp
-		}
+	for (var i=0; i<array.length; i++) {
+		var target = random(array.length - i) + i
+		var temp = array[i]
+		array[i] = array[target]
+		array[target] = temp
 	}
 }
 
-function binomial(n, k) {
-	if (2*k > n) {
-		return binomial(n, n-k)
-	}
-	var i
-	var b = 1
-	for (i=0; i<k; i++) {
-		b *= (n-i) / (k-i)
-	}
-	return b
-}
-
-function binomialSum(n, x) {
+function probability(totalWins, otherWins) {  // Use cumulative binomial distribution to calculate the probability of seeing otherWins or fewer if evenly matched.
 	var i
 	var sum = 0
-	for (i=0; i<=x; i++) {
-		sum += binomial(n, i)
+	for (i=0; i<=otherWins; i++) {
+		sum += individualProbability(totalWins, i)
 	}
 	return sum
+}
+
+function individualProbability(totalWins, otherWins) {  // Use binomial distribution to calculate the probability of seeing exactly otherWins.
+	if (2*otherWins > totalWins) {
+		return individualProbability(totalWins, totalWins - otherWins)
+	}
+	
+	var i
+	var numberOfHalves = totalWins
+	var resultSoFar = 1
+
+	for (i=0; i<otherWins; i++) {
+		while (resultSoFar > 1 && numberOfHalves > 0) {
+			numberOfHalves--
+			resultSoFar /= 2
+		}
+		resultSoFar *= (totalWins-i) / (otherWins-i)
+	}
+	for (i=0; i<numberOfHalves; i++) {
+		resultSoFar /= 2
+	}
+	
+	return resultSoFar
 }
 
 Number.isInteger = Number.isInteger || function(value) {
@@ -347,7 +372,43 @@ Number.isInteger = Number.isInteger || function(value) {
 	Math.floor(value) === value
 }
 
+function dumpLeaderboardHtmlToConsole() {
+	var content = '<table><thead><tr><th>Position<th>Player<th>Score<th>Confidence of not dropping</thead><tbody>'
+	players.forEach(function(player) {
+		if (player.included) {
+			content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
+			if (player.id === 0) {
+				content += '<td>' + player.title
+			} else {
+				content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
+			}
+			content += '<td>' + player.score + '<td>' + Math.floor(player.confidence*100) + '%'
+		}
+	})
+	content += '</tbody></table>'
+	console.log(content)
+}
+
+ordinalIndicator = (function() {
+	var t
+	var standard = ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th']
+	var eighty = []
+	for (t=0; t<8; t++) {
+		eighty += standard.slice()
+	}
+	var teens = ['th', 'th', 'th', 'th', 'th', 'th', 'th', 'th', 'th', 'th']
+	var indicators = standard.concat(teens, eighty)
+	return function(n) {
+		return indicators[n%100]
+	}
+})()
+
 /* INTERFACE */
+
+function suppressButtonsUntilLoaded() {
+	$('#run_single_game').prop('disabled', true)
+	$('#run_ongoing_tournament').prop('disabled', true)
+}
 
 function initialiseInterface() {
 	$('document').keypress(function(event) {
@@ -487,12 +548,9 @@ function initialiseInterface() {
 		batchSize = 1
 	})
 	$('#abandon_game').prop('disabled', true)
-	$('#abandon_game').click(abandonGame)
+	$('#abandon_game').click(checkThenAbandonGame)
 	$('#reset_leaderboard').prop('disabled', true)
-	$('#reset_leaderboard').click(function() {
-		$('#reset_leaderboard').prop('disabled', true)
-		initialiseLeaderboard()
-	})
+	$('#reset_leaderboard').click(checkThenResetLeaderboard)
 	$('#current_game_table').hide()
 	$('#disqualified_table').hide()
 	$('#max_players').val(maxPlayers)
@@ -526,7 +584,7 @@ function initialiseInterface() {
 		players.forEach(function(player) {
 			if (player.id === 0) {
 				player.code = $('#new_challenger_text').val()
-				player.antFunction = antFunctionMaker(player.code)
+				player.antFunction = antFunctionMaker(player)
 			}
 		})
 		$('#code_up_to_date').html('Code up to date')
@@ -609,8 +667,10 @@ function displayLeaderboard() {
 		var markerboxID = 'showmarker_' + player.id
 		if (player.disqualified) {
 			content += '<tr class="greyed_row"><td><a href="#disqualified_table">DISQUALIFIED</a>'
+		} else if (player.included) {
+			content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
 		} else {
-			content += '<tr><td>' + player.position
+			content += '<tr><td>-'
 		}
 		if (player.id === 0) {
 			content += '<td><a href="' + player.link + '">' + player.title + '</a>'
@@ -631,6 +691,8 @@ function displayLeaderboard() {
 		$(checkboxID).prop('disabled', player.disqualified)
 		$(checkboxID).change(function() {
 			player.included = $(checkboxID).prop('checked')
+			updateLeaderboardPositions()
+			displayLeaderboard()			
 		})
 		$(markerboxID).change(function() {
 			player.showmark = $(markerboxID).prop('checked')
@@ -652,7 +714,7 @@ function disqualify(player, reason, input, response) {
 	player.disqualified = true
 	player.included = false
 	sortGameStats()
-	sortLeaderboard()
+	updateLeaderboardPositions()
 	displayGameTable()
 	displayLeaderboard()
 	if(pauseDebug) {
@@ -686,11 +748,10 @@ function removeFromDisqualifiedTable(player) {
 	player.disqualified = false
 	player.included = true
 	if (player.id === 0) {
-		player.code = $('#new_challenger_text').val()
-		player.antFunction = antFunctionMaker(player.code)
+		player.antFunction = antFunctionMaker(player)
 	}
 	sortGameStats()
-	sortLeaderboard()
+	updateLeaderboardPositions()
 	displayGameTable()
 	displayLeaderboard()
 }
@@ -951,6 +1012,19 @@ function startNewGame() {
 	timeoutID = setTimeout(prepareForNextBatch, 0)
 }
 
+function checkThenResetLeaderboard() {
+	if (window.confirm('Confirm that you want to lose all the data in the leaderboard.')) {
+		$('#reset_leaderboard').prop('disabled', true)
+		initialiseLeaderboard()
+	}
+}
+	
+function checkThenAbandonGame() {
+	if (window.confirm('Confirm that you want to abandon this game.')) {
+		abandonGame()
+	}
+}
+
 function abandonGame() {
 	gameInProgress = false
 	clearTimeout(timeoutID)
@@ -965,7 +1039,7 @@ function abandonGame() {
 		$('#step').prop('disabled', true)
 		$('#step_ant').prop('disabled', true)
 		$('#abandon_game').prop('disabled', true)
-	}		
+	}
 }
 
 function processAnts() {
@@ -1058,6 +1132,7 @@ function processCurrentAnt() {
 		} else if (response.cell !== 4) {
 			moveAnt(x, y, currentAnt, rotatedView, response)
 		}
+		passFood(currentAnt)
 	}
 }
 
@@ -1161,7 +1236,6 @@ function moveAnt(x, y, ant, input, response) {
 			displayGameTable()					
 		}
 	}
-	passFood(ant)
 }
 
 function passFood(ant) {
@@ -1270,13 +1344,19 @@ function gameOver() {
 	abandonGame()
 }
 
-function sortLeaderboard() {	//	Sort by score, then by confidence if score equal, then by age if those equal. Disqualification overrides these.
+function sortLeaderboard() {	//	Sort by score, then by confidence if score equal, then by age if those equal.
 	players.sort(function(a, b) {
 		if (a.disqualified > b.disqualified) {
 			return 1
 		}
 		if (a.disqualified < b.disqualified) {
 			return -1
+		}
+		if (a.included > b.included) {
+			return -1
+		}
+		if (a.included < b.included) {
+			return 1
 		}
 		if (a.score > b.score) {
 			return -1
@@ -1299,7 +1379,7 @@ function sortLeaderboard() {	//	Sort by score, then by confidence if score equal
 	})
 }
 
-function sortGameStats() {	//	Sort by food, then by number of workers if food equal, then by age if those equal. Disqualification overrides these.
+function sortGameStats() {	//	Sort by food, then by number of workers if food equal, then by age if those equal.
 	gameStats.sort(function(a, b) {
 		if (a.player.disqualified > b.player.disqualified) {
 			return 1
@@ -1336,7 +1416,7 @@ function updateLeaderboardPositions() {
 	})
 	sortLeaderboard()
 	players.forEach(function(player) {
-		if (!player.disqualified && player.naivePosition === 1 || blockAboveIsConfident(player.naivePosition)) {
+		if (player.included && player.naivePosition === 1 || blockAboveIsConfident(player.naivePosition)) {
 			player.position = player.naivePosition
 		} else {
 			player.position = positionOfBlockAbove(player.naivePosition)
@@ -1348,7 +1428,7 @@ function blockAboveIsConfident(naivePosition) {
 	var previousNaivePosition = naivePositionOfBlockAbove(naivePosition)
 	var confident = true
 	players.forEach(function(player) {
-		if (player.naivePosition === previousNaivePosition && player.confidence < confidenceThreshold) {
+		if (player.included && player.naivePosition === previousNaivePosition && player.confidence < confidenceThreshold) {
 			confident = false
 		}
 	})
@@ -1359,7 +1439,7 @@ function positionOfBlockAbove(naivePosition) {
 	var previousNaivePosition = naivePositionOfBlockAbove(naivePosition)
 	var position = 0
 	players.forEach(function(player) {
-		if (player.naivePosition === previousNaivePosition) {
+		if (player.included && player.naivePosition === previousNaivePosition) {
 			position = player.position
 		}
 	})
@@ -1369,7 +1449,7 @@ function positionOfBlockAbove(naivePosition) {
 function naivePositionOfBlockAbove(naivePosition) {
 	var previousNaivePosition = 0
 	players.forEach(function(player) {
-		if (player.naivePosition > previousNaivePosition && player.naivePosition < naivePosition) {
+		if (player.included && player.naivePosition > previousNaivePosition && player.naivePosition < naivePosition) {
 			previousNaivePosition = player.naivePosition
 		}
 	})
@@ -1378,12 +1458,12 @@ function naivePositionOfBlockAbove(naivePosition) {
 
 function updateConfidences() {
 	players.forEach(function(player) {
-		if (player.disqualified) {
+		if (!player.included) {
 			player.confidence = 0
 		} else {
 			player.confidence = 1
 			players.forEach(function(otherPlayer) {
-				if (!otherPlayer.disqualified && player !== otherPlayer && otherPlayer.score < player.score) {
+				if (otherPlayer.included && player !== otherPlayer && otherPlayer.score < player.score) {
 					candidate = individualConfidence(player, otherPlayer)
 					if (candidate < player.confidence) {
 						player.confidence = candidate
@@ -1398,14 +1478,14 @@ function individualConfidence(player, otherPlayer) {
 	var myWins = player.individualVictories[otherPlayer]
 	var otherWins = otherPlayer.individualVictories[player]
 	var totalWins = myWins + otherWins
-	var probability = Math.pow(0.5, totalWins) * binomialSum(totalWins, otherWins)
-	return 1 - probability
+	var probabilityGivenEvenlyMatched = probability(totalWins, otherWins)
+	return 1 - probabilityGivenEvenlyMatched
 }
 
 function playersWithHigherScore(id, score) {
 	var count = 0
 	players.forEach(function(player) {
-		if (player.score > score) {
+		if (player.included && player.score > score) {
 			count++
 		}
 	})
@@ -1572,8 +1652,8 @@ function atLeastOneVisibleAnt() {
 function loadPlayers() {
 	loadAnswers(site, qid, function(answers) {
 		createPlayers(answers)
+	initialiseInterface()
 	})
-	showLoadedTime()
 }
 
 function loadAnswers(site, qid, onFinish) {
@@ -1604,6 +1684,8 @@ function createPlayers(answers) {
 	var namePattern = /<h1\b[^>]*>(.*?)<\/h1>/
 
 	var testPlayer = { id: 0, included: false, code: '', link: '#new_challenger_heading', title: 'NEW CHALLENGER', individualVictories: {} }
+	testPlayer.code = $('#new_challenger_text').val()
+	testPlayer.antFunction = antFunctionMaker(testPlayer)
 	players.push(testPlayer)
 	
 	answers.forEach(function(answer) {
@@ -1616,14 +1698,21 @@ function createPlayers(answers) {
 			player.included = true
 			player.disqualified = false
 			player.code = decode(codeMatch[1])
-			player.antFunction = antFunctionMaker(player.code)
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,40) + ' - ' + user
 			player.individualVictories = {}
+			player.antFunction = antFunctionMaker(player)
 			players.push(player)
 		}		
 	})
+	showLoadedTime()
 	colorPlayers()
+	invalidPlayers.forEach(function(record) {
+		var reason = 'Excluded at load. Invalid function body: ' + record.errorMessage
+		var input = 'None - never played.'
+		var response = 'None - never played.'
+		disqualify(record.player, reason, input, response)
+	})
 	initialiseLeaderboard()
 }
 

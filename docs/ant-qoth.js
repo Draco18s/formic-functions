@@ -602,7 +602,12 @@ function initialiseInterface() {
 		players.forEach(function(player) {
 			if (player.id === 0) {
 				var testCode = $('#new_challenger_debug').val()
-				var testInput = antFunctionMaker(testCode);
+				var retPat = /return[ ]*\[/;
+				if(!retPat.test(testCode)) {
+					testCode = "return [" + testCode + "]";
+				}
+				
+				var testInput = new Function('with(this) { ' + testCode + '\n}'); //antFunctionMaker(testCode);
 				var response;
 				try {
 					var parsedInput = maskedEval(testInput);

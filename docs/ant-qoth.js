@@ -14,9 +14,9 @@ function load() {
 }
 
 function confirmRefresh() {
-	window.addEventListener('beforeunload', function(e) {
+	//window.addEventListener('beforeunload', function(e) {
 		e.returnValue = ''
-	})
+	//})
 }
 
 function setGlobals() {
@@ -1013,16 +1013,16 @@ function startNewGame() {
 }
 
 function checkThenResetLeaderboard() {
-	if (window.confirm('Confirm that you want to lose all the data in the leaderboard.')) {
+	//if (window.confirm('Confirm that you want to lose all the data in the leaderboard.')) {
 		$('#reset_leaderboard').prop('disabled', true)
 		initialiseLeaderboard()
-	}
+	//}
 }
 	
 function checkThenAbandonGame() {
-	if (window.confirm('Confirm that you want to abandon this game.')) {
+	//if (window.confirm('Confirm that you want to abandon this game.')) {
 		abandonGame()
-	}
+	//}
 }
 
 function abandonGame() {

@@ -15,7 +15,7 @@ function load() {
 
 function confirmRefresh() {
 	//window.addEventListener('beforeunload', function(e) {
-		e.returnValue = ''
+		//e.returnValue = ''
 	//})
 }
 

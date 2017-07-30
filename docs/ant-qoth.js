@@ -510,12 +510,14 @@ function initialiseInterface() {
 		}
 	})
 	$('#fit_canvas').click(function() {
-		displayCanvas.style.borderLeft = 'none'
-		displayCanvas.style.borderRight = 'none'
-		displayCanvas.width = document.body.clientWidth
-		displayCanvas.height = displayCanvas.width * 500/1250
-		$('#new_challenger_text').width(Math.min(1250, displayCanvas.width - 20))
-		displayArena()
+		if (window.confirm('Fitting display to browser width breaks tooltip in the zoom view. Are you sure?')) {
+			displayCanvas.style.borderLeft = 'none'
+			displayCanvas.style.borderRight = 'none'
+			displayCanvas.width = document.body.clientWidth
+			displayCanvas.height = displayCanvas.width * 500/1250
+			$('#new_challenger_text').width(Math.min(1250, displayCanvas.width - 20))
+			displayArena()
+		}
 	})
 	$('#display_canvas').mousemove(function(event) {
 		if (!zoomLocked) {
@@ -529,6 +531,51 @@ function initialiseInterface() {
 			}
 			fillZoomCanvas()
 			displayArena()
+		}
+		else {
+			var ratio = arenaWidth/displayCanvas.width;
+			var cellSize = 8 / (zoomCanvas.width / displayCanvas.width);
+			//cellSize is correct, but not working
+			//zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide?
+			console.log(cellSize);
+			if (event.pageX == null && event.clientX != null) {
+				eventDoc = (event.target && event.target.ownerDocument) || document;
+				doc = eventDoc.documentElement;
+				body = eventDoc.body;
+
+				event.pageX = event.clientX +
+				  (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+				  (doc && doc.clientLeft || body && body.clientLeft || 0);
+				event.pageY = event.clientY +
+				  (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
+				  (doc && doc.clientTop  || body && body.clientTop  || 0 );
+			}
+			var offset = Math.floor(zoomCellsPerSide / ratio)
+			var Lll = (zoomedAreaCentreX - offset + arenaWidth) % arenaWidth;
+			var Ttt = (zoomedAreaCentreY - offset + arenaHeight) % arenaHeight;
+			offset = zoomCellsPerSide * 10;
+			if(zoomOnLeft) {
+				offset = 0;
+			}
+			else {
+				offset = (arenaWidth/ratio) - offset;
+			}
+			var posX = (event.offsetX - offset);
+			var posY = Math.floor((event.offsetY / 10) + Ttt);
+			if(posX >= 0 && posX <= 500) {
+				posX = Math.floor((posX / 10) + Lll);
+				var cell = arena[posX + posY*arenaWidth];
+				var tool = $("#tooltip");
+				if(cell.ant != null) {
+					tool.css("display","block");
+					tool.css("left",event.pageX+8);
+					tool.css("top",event.pageY+8);
+					tool.html(cell.ant.player.title +"<br>Type: " + cell.ant.type + " Food: " + cell.ant.food);
+				}
+				else {
+					tool.css("display","none");
+				}
+			}
 		}
 	})
 	$('#display_canvas').mouseleave(function() {
@@ -601,11 +648,29 @@ function initialiseInterface() {
 	$('#pass_debug_value').click(function() {
 		players.forEach(function(player) {
 			if (player.id === 0) {
-				var testCode = $('#new_challenger_debug').val()
-				var retPat = /return[ ]*\[/;
+				var testCode = $('#new_challenger_debug').val();
+				var retPat = /(return){0,1}[ ]*\[(.*)/;
 				if(!retPat.test(testCode)) {
-					testCode = "return [" + testCode + "]";
+					testCode = testCode.replace(/return[ ]*/, "");
+					testCode = "[" + testCode;
 				}
+				retPat = /(.*)\]$/;
+				if(!retPat.test(testCode)) {
+					testCode = testCode + "]";
+				}
+				retPat = /return[ ]*/;
+				if(!retPat.test(testCode)) {
+					testCode = "return " + testCode;
+				}
+				retPat = /,{/g;
+				if(retPat.test(testCode)) {
+					testCode = testCode.replace(retPat, ",\n{");
+				}
+				retPat = /\[{/g;
+				if(retPat.test(testCode)) {
+					testCode = testCode.replace(retPat, "[\n{");
+				}
+				$('#new_challenger_debug').val(testCode);
 				
 				var testInput = new Function('with(this) { ' + testCode + '\n}'); //antFunctionMaker(testCode);
 				var response;
@@ -883,16 +948,18 @@ function paintAnt(x, y, ant) {
 function displayArena() {	
 	putImageToArenaCanvas()
 	displayCtx.drawImage(arenaCanvas, 0, 0, arenaWidth, arenaHeight, 0, 0, displayCanvas.width, displayCanvas.height)
+	var ratio = arenaWidth/displayCanvas.width;
 	population.forEach(function(ant) {
 		if(ant.player.showmark) {
-			displayCtx.drawImage(antMarkerImage,Math.round(ant.x/2),Math.round(ant.y/2-16))
-			var x = Math.round(ant.x/2+ 9)
-			var y = Math.round(ant.y/2-13)
+			
+			displayCtx.drawImage(antMarkerImage,Math.round(ant.x/ratio),Math.round(ant.y/ratio-16))
+			var x = Math.round(ant.x/ratio+ 9)
+			var y = Math.round(ant.y/ratio-13)
 			for(var xx=x; xx<=x+2;xx+=2) { 
 				for(var yy=y; yy<=y+2;yy+=2) { 
 					for(var xo=0; xo <= 1; xo++) {
 						for(var yo=0; yo <= 1; yo++) {
-							displayCtx.drawImage(ant.player.avatars[paletteChoice], (xx-x)/2, (yy-y)/2, 1, 1, xx+xo, yy+yo, 1, 1)
+							displayCtx.drawImage(ant.player.avatars[paletteChoice], (xx-x)/ratio, (yy-y)/ratio, 1, 1, xx+xo, yy+yo, 1, 1)
 						}
 					}
 				}

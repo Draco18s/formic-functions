@@ -510,14 +510,12 @@ function initialiseInterface() {
 		}
 	})
 	$('#fit_canvas').click(function() {
-		if (window.confirm('Fitting display to browser width breaks tooltip in the zoom view. Are you sure?')) {
-			displayCanvas.style.borderLeft = 'none'
-			displayCanvas.style.borderRight = 'none'
-			displayCanvas.width = document.body.clientWidth
-			displayCanvas.height = displayCanvas.width * 500/1250
-			$('#new_challenger_text').width(Math.min(1250, displayCanvas.width - 20))
-			displayArena()
-		}
+		displayCanvas.style.borderLeft = 'none'
+		displayCanvas.style.borderRight = 'none'
+		displayCanvas.width = document.body.clientWidth
+		displayCanvas.height = displayCanvas.width * 500/1250
+		$('#new_challenger_text').width(Math.min(1250, displayCanvas.width - 20))
+		displayArena()
 	})
 	$('#display_canvas').mousemove(function(event) {
 		if (!zoomLocked) {
@@ -534,10 +532,7 @@ function initialiseInterface() {
 		}
 		else {
 			var ratio = arenaWidth/displayCanvas.width;
-			var cellSize = 8 / (zoomCanvas.width / displayCanvas.width);
-			//cellSize is correct, but not working
-			//zoomCellSideLength = zoomCanvas.width / zoomCellsPerSide?
-			console.log(cellSize);
+			var cellSize = (zoomCanvas.width / zoomCellsPerSide) / ratio;
 			if (event.pageX == null && event.clientX != null) {
 				eventDoc = (event.target && event.target.ownerDocument) || document;
 				doc = eventDoc.documentElement;
@@ -550,10 +545,10 @@ function initialiseInterface() {
 				  (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
 				  (doc && doc.clientTop  || body && body.clientTop  || 0 );
 			}
-			var offset = Math.floor(zoomCellsPerSide / ratio)
+			var offset = zoomCellsPerSide / 2;
 			var Lll = (zoomedAreaCentreX - offset + arenaWidth) % arenaWidth;
 			var Ttt = (zoomedAreaCentreY - offset + arenaHeight) % arenaHeight;
-			offset = zoomCellsPerSide * 10;
+			offset = zoomCellsPerSide * cellSize;
 			if(zoomOnLeft) {
 				offset = 0;
 			}
@@ -561,9 +556,9 @@ function initialiseInterface() {
 				offset = (arenaWidth/ratio) - offset;
 			}
 			var posX = (event.offsetX - offset);
-			var posY = Math.floor((event.offsetY / 10) + Ttt);
+			var posY = Math.round((event.offsetY / cellSize) + Ttt);
 			if(posX >= 0 && posX <= 500) {
-				posX = Math.floor((posX / 10) + Lll);
+				posX = Math.round((posX / cellSize) + Lll);
 				var cell = arena[posX + posY*arenaWidth];
 				var tool = $("#tooltip");
 				if(cell.ant != null) {

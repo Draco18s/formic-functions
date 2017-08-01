@@ -6,6 +6,14 @@ This is the code behind the JavaScript programming contest hosted on Programming
 
 ## [Run modified controller](https://draco18s.github.io/formic-functions/)
 
+![dance floor ant GIF](https://i.stack.imgur.com/oyEfT.gif)
+
+<sup>Not actual game footage.</sup>
+
+Each player starts with one ant - a queen, who collects food. Each piece of food can be held or used to produce a worker. Workers also collect food to be brought back to the queen.
+
+All players compete in one arena. The winner is the queen holding the most food after she has taken 30,000 turns. The catch is that the ants can only communicate by changing the colors of the arena squares, which may also be changed by rival ants...
+
 ### Modifications from official
 
 The changes adds a marker that can be turned on or off for each faction:
@@ -32,6 +40,6 @@ Additionally, food in the zoom view has been given a white outline so it is visi
 
 Zoom view also has a marker for Worker Type (same as the marker icon, drawn below the ant). The above image shows a Type 1 ant.
 
-![dance floor ant GIF](https://i.stack.imgur.com/oyEfT.gif)
+![Zoom hover](https://i.stack.imgur.com/Jll5I.png)
 
-Not actual game footage.
+Hover over ants to see their faction name, type, and food amount

@@ -737,7 +737,7 @@ function displayLeaderboard() {
 			content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
 			var lower = Math.min(minPossiblePosition(player, 0), minPossiblePosition(player, 1))
 			var upper = Math.max(maxPossiblePosition(player, 0), maxPossiblePosition(player, 1))
-			content += ' (' lower '-' + upper + ')'
+			content += ' (' + lower + '-' + upper + ')'
 		} else {
 			content += '<tr><td>-'
 		}

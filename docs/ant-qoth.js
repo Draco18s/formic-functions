@@ -1034,7 +1034,6 @@ function startNewGame() {
 	playersThisGame.forEach(function(player) {
 		player.elapsedTime = 0
 		player.permittedTime = 0
-		player.participation++
 		while (true) {
 			var x = random(arenaWidth)
 			var y = random(arenaHeight)
@@ -1083,10 +1082,6 @@ function checkThenResetLeaderboard() {
 function checkThenAbandonGame() {
 	//if (window.confirm('Confirm that you want to abandon this game.')) {
 		abandonGame()
-		playersThisGame.forEach(function(player) {
-			console.log(player.title)
-			player.participation = Math.max(player.participation-1,0)
-		})
 	//}
 }
 
@@ -1386,6 +1381,9 @@ function passFoodWorker(ant) {
 
 function gameOver() {
 	var id, score
+	playersThisGame.forEach(function(player) {
+		player.participation++
+	}
 	gameStats.forEach(function(row) {
 		if (!row.player.disqualified) {
 			score = playersWithLessFood(row.player)

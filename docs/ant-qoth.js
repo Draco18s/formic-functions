@@ -89,6 +89,7 @@ function setGlobals() {
 	initialiseSupplementaryCanvases()
 	antMarkerImage = new Image();
 	antMarkerImage.src = "./marker.png";
+	playersThisGame = []
 }
 
 function initialiseColorPalettes() {
@@ -1027,7 +1028,7 @@ function startNewGame() {
 	})
 	shuffle(includedPlayers)
 	var numberOfPlayers = Math.min(includedPlayers.length, maxPlayers)
-	var playersThisGame = includedPlayers.slice(0, numberOfPlayers)
+	playersThisGame = includedPlayers.slice(0, numberOfPlayers)
 	gameStats = []
 	population = []
 	playersThisGame.forEach(function(player) {
@@ -1082,6 +1083,10 @@ function checkThenResetLeaderboard() {
 function checkThenAbandonGame() {
 	//if (window.confirm('Confirm that you want to abandon this game.')) {
 		abandonGame()
+		playersThisGame.forEach(function(player) {
+			console.log(player.title)
+			player.participation--
+		})
 	//}
 }
 

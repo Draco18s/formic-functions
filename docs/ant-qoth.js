@@ -378,12 +378,16 @@ function dumpLeaderboardHtmlToConsole() {
 		players.forEach(function(player) {
 			if (player.included) {
 				content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
+				var lower = Math.min(minPossiblePosition(player, 0), minPossiblePosition(player, 1))
+				var upper = Math.max(maxPossiblePosition(player, 0), maxPossiblePosition(player, 1))
+				content += ' (' lower '-' + upper + ')'
+				
 				if (player.id === 0) {
 					content += '<td>' + player.title
 				} else {
 					content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
 				}
-				content += '<td>' + player.score[i]
+				content += '<td>' + player.score[i] + ' ('+player.participation+')'
 			}
 		})
 		content += '</tbody></table>'
@@ -717,6 +721,7 @@ function initialiseLeaderboard() {
 	players.forEach(function(player) {
 		player.position = 1
 		player.score = [0, 0, 0]
+		player.participation = 0
 	})
 	displayLeaderboard()
 }
@@ -730,6 +735,9 @@ function displayLeaderboard() {
 			content += '<tr class="greyed_row"><td><a href="#disqualified_table">DISQUALIFIED</a>'
 		} else if (player.included) {
 			content += '<tr><td>' + player.position + '<sup>' + ordinalIndicator(player.position) + '</sup>'
+			var lower = Math.min(minPossiblePosition(player, 0), minPossiblePosition(player, 1))
+			var upper = Math.max(maxPossiblePosition(player, 0), maxPossiblePosition(player, 1))
+			content += ' (' lower '-' + upper + ')'
 		} else {
 			content += '<tr><td>-'
 		}
@@ -739,7 +747,7 @@ function displayLeaderboard() {
 			content += '<td><a href="' + player.link + '" target="_blank">' + player.title + '</a>'
 		}
 		content += '<td>' + player.imageTags[paletteChoice] +
-			'<td>' + player.score[2] +
+			'<td>' + player.score[2] + ' ('+player.participation+')' +
 			'<td><input id=' + checkboxID + ' type=checkbox>' +
 			'<td><input id=' + markerboxID + ' type=checkbox' + (player.showmark?' checked>':'>')
 	})
@@ -1025,6 +1033,7 @@ function startNewGame() {
 	playersThisGame.forEach(function(player) {
 		player.elapsedTime = 0
 		player.permittedTime = 0
+		player.participation++
 		while (true) {
 			var x = random(arenaWidth)
 			var y = random(arenaHeight)
@@ -1751,6 +1760,7 @@ function createPlayers(answers) {
 			player.link = answer.link
 			player.title = nameMatch[1].substring(0,40) + ' - ' + user
 			player.antFunction = antFunctionMaker(player)
+			player.participation = 0
 			players.push(player)
 		}		
 	})

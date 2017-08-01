@@ -1383,7 +1383,7 @@ function gameOver() {
 	var id, score
 	playersThisGame.forEach(function(player) {
 		player.participation++
-	}
+	})
 	gameStats.forEach(function(row) {
 		if (!row.player.disqualified) {
 			score = playersWithLessFood(row.player)

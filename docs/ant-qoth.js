@@ -561,7 +561,7 @@ function initialiseInterface() {
 				posX = Math.round((posX / cellSize) + Lll);
 				var cell = arena[posX + posY*arenaWidth];
 				var tool = $("#tooltip");
-				if(cell.ant != null) {
+				if(cell !=  null && cell.ant != null) {
 					tool.css("display","block");
 					tool.css("left",event.pageX+8);
 					tool.css("top",event.pageY+8);

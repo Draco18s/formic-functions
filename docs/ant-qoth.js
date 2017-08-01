@@ -1085,7 +1085,7 @@ function checkThenAbandonGame() {
 		abandonGame()
 		playersThisGame.forEach(function(player) {
 			console.log(player.title)
-			player.participation--
+			player.participation = Math.max(player.participation-1,0)
 		})
 	//}
 }

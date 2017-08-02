@@ -564,7 +564,6 @@ function initialiseInterface() {
 			}
 			var posX = (event.offsetX - offset);
 			var posY = Math.floor((event.offsetY / cellSize) + Ttt);
-			console.log(posX);
 			if(posX >= 0 && posX <= 500) {
 				posX = Math.floor((posX / cellSize) + Lll);
 				var cell = arena[posX + posY*arenaWidth];

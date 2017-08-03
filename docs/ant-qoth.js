@@ -474,7 +474,6 @@ function initialiseInterface() {
 		}
 	})
 	$('#check_all').change(function() {
-		console.log("checking all players")
 		players.forEach(function(player) {
 			var checkboxID = 'included_' + player.id
 			if (player.id != 0 || (player.code != "")) {

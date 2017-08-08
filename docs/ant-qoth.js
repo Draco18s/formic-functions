@@ -41,8 +41,9 @@ function setGlobals() {
 	currentAntIndex = 0
 	maxPlayers = parseInt($('#max_players').val(), 10)
 	display = true
-	bigBatchSize = 100
-	batchSize = 1
+	displayFrameLengthTarget = 33
+	noDisplayFrameLengthTarget = 1000
+	frameLengthTarget = displayFrameLengthTarget
 	zoomed = false
 	zoomLocked = false
 	continuousMoves = true
@@ -490,7 +491,7 @@ function initialiseInterface() {
 		$('.show_when_no_display').show(300)
 		display = false
 		continuousMoves = true
-		batchSize = bigBatchSize
+		frameLengthTarget = noDisplayFrameLengthTarget
 	})
 	$('#delay').val(delay)
 	$('#delay').change(function() {
@@ -605,7 +606,7 @@ function initialiseInterface() {
 		$('.show_when_no_display').hide(300)
 		$('.hide_when_no_display').show(300)
 		display = true
-		batchSize = 1
+		frameLengthTarget = displayFrameLengthTarget
 	})
 	$('#abandon_game').prop('disabled', true)
 	$('#abandon_game').click(checkThenAbandonGame)
@@ -1117,14 +1118,38 @@ function abandonGame() {
 
 function processAnts() {
 	processingStartTime = performance.now()
-	for (var t=0; t<batchSize; t++) {
+	var antMovesSoFar = 0
+	var antJustMoved
+	while (true) {
 		processCurrentAnt()
+		antMovesSoFar++
+		antJustMoved = currentAntIndex
 		currentAntIndex = (currentAntIndex + 1) % population.length
 		if (currentAntIndex === 0) {
 			moveCounter++
+			if (moveCounter >= movesPerGame) {
+				break
+			}
+			if (delay > 0 && display && continuousMoves) {
+				break
+			}
 		}
-		if (moveCounter >= movesPerGame || (doPauseAfter && moveCounter == pauseAfterNMoves)) {
+		timeSoFar = performance.now() - processingStartTime
+		averageMoveTime = timeSoFar / antMovesSoFar
+		timeRemaining = frameLengthTarget - timeSoFar
+		if (timeRemaining < averageMoveTime && continuousMoves || (doPauseAfter && moveCounter == pauseAfterNMoves)) {
 			break
+		}
+		if (!continuousMoves) {
+			if (singleAntStep) {
+				if (!zoomed || !atLeastOneVisibleAnt() || visible(population[antJustMoved])) {
+					break
+				}
+			} else {
+				if (currentAntIndex === 0) {
+					break
+				}
+			}			
 		}
 	}
 	if (moveCounter === 1) {
@@ -1161,21 +1186,10 @@ function prepareForNextBatch() {
 				displayArena()
 			} else {
 				timeoutID = setTimeout(processAnts, 0)
+				displayArena()
 			}
 		} else {
-			if (singleAntStep) {
-				if (zoomed && atLeastOneVisibleAnt() && !visible(population[currentAntIndex])) {
-					timeoutID = setTimeout(processAnts, 0)
-				} else {
-					displayArena()
-				}
-			} else {
-				if (currentAntIndex !== 0) {
-					timeoutID = setTimeout(processAnts, 0)
-				} else {
-					displayArena()
-				}
-			}
+			displayArena()
 		}
 	} else {
 		timeoutID = setTimeout(processAnts, 0)

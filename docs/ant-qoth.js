@@ -11,6 +11,30 @@ function load() {
 	confirmRefresh()
 	setGlobals()
 	loadPlayers()
+	// Pauses the game (just like hitting the 'pause' button)
+	console.pause = function() {
+		console.log("PAUSE");
+		$('#pause').trigger('click');
+	};
+
+	// Sets the game step delay to a new value
+	console.setDelay = function(value) {
+		console.log("SET DELAY");
+		$('#delay').val(value);
+		$('#delay').trigger('change');
+	};
+	
+	// Pauses and waits for a number of ms
+	// Similar to setDelay, only it will only happen once (each time its executed),
+	// rather than setting the simulation speed permanently to the new value
+	// Note: will not pause remaining execution
+	console.waitFor = function(value) {
+		console.log("WAIT");
+		$('#pause').trigger('click');
+		setTimeout(function() {
+			$('#play').trigger('click');
+		}, (value));
+	}
 }
 
 function confirmRefresh() {

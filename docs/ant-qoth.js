@@ -1114,6 +1114,7 @@ function checkThenResetLeaderboard() {
 	//if (window.confirm('Confirm that you want to lose all the data in the leaderboard.')) {
 		$('#reset_leaderboard').prop('disabled', true)
 		initialiseLeaderboard()
+		deleteAllCookies()
 	//}
 }
 	
@@ -1453,6 +1454,77 @@ function gameOver() {
 		$('#game_counter').html(gamesPlayed + ' games played.')
 	}
 	abandonGame()
+	saveToCookie()
+}
+
+function saveToCookie() {
+	document.cookie = "gamesPlayed="+gamesPlayed;
+	players.forEach(function(player) {
+		document.cookie = player.id +"_score=" + player.score;
+		document.cookie = player.id +"_games=" + player.games;
+	})
+}
+
+function loadFromCookie() {
+	var decodedCookie = decodeURIComponent(document.cookie);
+	console.log(document.cookie);
+	gamesPlayed = getCookie(decodedCookie, "gamesPlayed");
+	if(gamesPlayed == 0) gamesPlayed = 1;
+	players.forEach(function(player) {
+		player.score = [0, 0, 0]
+		player.games = [0, 0, 0]
+		player.scorePerGame = [0, 0, 0]
+		
+		var scores = getCookie(decodedCookie, player.id +"_score");
+		console.log(player.id + ":" + scores);
+		var s = scores.split(',');
+		player.score[0] = parseInt(s[0], 10);
+		player.score[1] = parseInt(s[1], 10);
+		player.score[2] = parseInt(s[2], 10);
+		var gamess = getCookie(decodedCookie, player.id +"_games");
+		console.log(player.id + ":" + gamess);
+		var g = gamess.split(',');
+		player.games[0] = parseInt(g[0], 10);
+		player.games[1] = parseInt(g[1], 10);
+		player.games[2] = parseInt(g[2], 10);
+		
+		player.scorePerGame[0] = player.games[0] > 0 ? player.score[0] / player.games[0] : 0
+		player.scorePerGame[1] = player.games[1] > 0 ? player.score[1] / player.games[1] : 0
+		player.scorePerGame[2] = player.games[2] > 0 ? player.score[2] / player.games[2] : 0
+	});
+	
+	setTimeout(function() {
+		$('#run_ongoing_tournament').trigger('click');
+	}, 1000);
+}
+
+function deleteAllCookies() {
+    var cookies = document.cookie.split(";");
+
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i];
+        var eqPos = cookie.indexOf("=");
+        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+}
+
+function getCookie(decodedCookie, cname) {
+    var name = cname + "=";
+    //var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+	updateLeaderboardPositions()
+	displayLeaderboard()
 }
 
 function sortLeaderboard() {	//	Sort by scorePerGame, then by id if scorePerGame equal.
@@ -1827,5 +1899,10 @@ function createPlayers(answers) {
 		disqualify(record.player, reason, input, response)
 	})
 	initialiseLeaderboard()
+	if(document.cookie.length > 0) {
+		loadFromCookie()
+		updateLeaderboardPositions()
+		displayLeaderboard()
+	}
 }
 

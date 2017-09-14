@@ -51,6 +51,7 @@ function setGlobals() {
 	gameStats = []
 	disqualifiedInfo = []
 	population = []
+	maxAnts = -1;
 	moveCounter = 0
 	movesPerGame = $('#moves_per_game').val()
 	paletteSize = 8
@@ -614,6 +615,9 @@ function initialiseInterface() {
 					tool.css("display","none");
 				}
 			}
+			else {
+				tool.css("display","none");
+			}
 		}
 	})
 	$('#display_canvas').mouseleave(function() {
@@ -644,6 +648,17 @@ function initialiseInterface() {
 	})
 	$('#permitted_time_override').change(function() {
 		permittedTime = parseInt($('#permitted_time_override').val(), 10)
+	})
+	$('#max_ants_override').change(function() {
+		maxAnts = parseInt($('#max_ants_override').val(), 10)
+		if(maxAnts < 5) {
+			maxAnts = -1
+			$('#max_ants_override').val(maxAnts)
+		}
+		if(maxAnts > 200) {
+			maxAnts = 200
+			$('#max_ants_override').val(maxAnts)
+		}
 	})
 	$('#debug').change(function() {
 		debug = $('#debug').prop('checked')
@@ -1240,7 +1255,18 @@ function processCurrentAnt() {
 		if (response.color) {
 			setColor(x, y, response.color)
 		} else if (response.type) {
-			makeWorker(x, y, response.type, currentAnt, rotatedView, response)
+			var totalAntsOwned = 0;
+			gameStats.forEach(function(row) {
+				if (row.id === currentAnt.player.id) {
+					totalAntsOwned = row['type1']+row['type2']+row['type3']+row['type4']
+				}
+			})
+			if(maxAnts < 0 || totalAntsOwned < maxAnts) {
+				makeWorker(x, y, response.type, currentAnt, rotatedView, response)
+			}
+			else {
+				teleportWorker(x, y, response.type, currentAnt, rotatedView, response)
+			}
 		} else if (response.cell !== 4) {
 			moveAnt(x, y, currentAnt, rotatedView, response)
 		}
@@ -1268,6 +1294,64 @@ function displayMoveInfo(ant, rotatedView, response) {
 function setColor(x, y, color) {
 	arena[x + y*arenaWidth].color = color
 	updateArenaCanvasCell(x, y)
+}
+
+function teleportWorker(x, y, type, parent, input, response) {
+	if (parent.type < 5) {
+		disqualify(parent.player, 'A worker cannot create a new worker.', input, response)
+		return
+	}
+	if (!parent.food) {
+		disqualify(parent.player, 'Cannot create a new worker without food.', input, response)
+		return
+	}
+	var birthCell = arena[x + y*arenaWidth]
+	if (birthCell.food) {
+		disqualify(parent.player, 'Cannot create new worker on top of food.', input, response)
+		return
+	}
+	if (birthCell.ant) {
+		if (parent.x === x && parent.y === y) {
+			disqualify(parent.player, 'Cannot create new worker on own cell.', input, response)
+			return
+		} else {
+			disqualify(parent.player, 'Cannot create new worker on top of another ant.', input, response)
+			return
+		}
+	}
+	var newAnt = null;
+	for(var a = 0; a < currentAntIndex; a++) {
+		var currentAnt = population[a]
+		if(currentAnt.type == type && currentAnt.player == parent.player) {
+			var distFromQueen = distance(currentAnt.x, currentAnt.y, parent.x, parent.y)
+			if(distFromQueen > 10) {
+				population.splice(a, 1)
+				newAnt = currentAnt;
+				break;
+			}
+		}
+	}
+	if(newAnt != null) {
+		var deathCell = arena[newAnt.x + newAnt.y*arenaWidth]
+		deathCell.ant = null
+		updateArenaCanvasCell(newAnt.x, newAnt.y)
+		newAnt.x = x
+		newAnt.y = y
+		newAnt.food = 0
+		birthCell.ant = newAnt
+		population.splice(currentAntIndex-1, 0, newAnt)
+		parent.food--
+		sortGameStats()
+		displayGameTable()
+		updateArenaCanvasCell(newAnt.x, newAnt.y)
+	}
+	else {
+		makeWorker(x, y, type, parent, input, response)
+	}
+}
+
+function distance(x1, y1, x2, y2) {
+	return Math.sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2))
 }
 
 function makeWorker(x, y, type, parent, input, response) {
@@ -1462,6 +1546,7 @@ function saveToCookie() {
 	players.forEach(function(player) {
 		document.cookie = player.id +"_score=" + player.score;
 		document.cookie = player.id +"_games=" + player.games;
+		document.cookie = player.id +"_inc=" + player.included;
 	})
 }
 
@@ -1469,20 +1554,20 @@ function loadFromCookie() {
 	var decodedCookie = decodeURIComponent(document.cookie);
 	console.log(document.cookie);
 	gamesPlayed = getCookie(decodedCookie, "gamesPlayed");
-	if(gamesPlayed == 0) gamesPlayed = 1;
+	if(gamesPlayed == 0) return;//gamesPlayed = 1;
 	players.forEach(function(player) {
 		player.score = [0, 0, 0]
 		player.games = [0, 0, 0]
 		player.scorePerGame = [0, 0, 0]
 		
 		var scores = getCookie(decodedCookie, player.id +"_score");
-		console.log(player.id + ":" + scores);
+		//console.log(player.id + ":" + scores);
 		var s = scores.split(',');
 		player.score[0] = parseInt(s[0], 10);
 		player.score[1] = parseInt(s[1], 10);
 		player.score[2] = parseInt(s[2], 10);
 		var gamess = getCookie(decodedCookie, player.id +"_games");
-		console.log(player.id + ":" + gamess);
+		//console.log(player.id + ":" + gamess);
 		var g = gamess.split(',');
 		player.games[0] = parseInt(g[0], 10);
 		player.games[1] = parseInt(g[1], 10);
@@ -1491,8 +1576,15 @@ function loadFromCookie() {
 		player.scorePerGame[0] = player.games[0] > 0 ? player.score[0] / player.games[0] : 0
 		player.scorePerGame[1] = player.games[1] > 0 ? player.score[1] / player.games[1] : 0
 		player.scorePerGame[2] = player.games[2] > 0 ? player.score[2] / player.games[2] : 0
+		
+		var inc = getCookie(decodedCookie, player.id +"_inc");
+		
+		var checkboxID = 'included_' + player.id;
+		//console.log(player.id + ":" + (inc == "true"));
+		$('#'+checkboxID).prop('checked', (inc == "true"));
+		player.included = (inc == "true");
 	});
-	
+	$('#reset_leaderboard').prop('disabled', false);
 	setTimeout(function() {
 		$('#run_ongoing_tournament').trigger('click');
 	}, 1000);

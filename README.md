@@ -6,7 +6,7 @@ This is the code behind the JavaScript programming contest hosted on Programming
 
 ## [Run modified controller](https://draco18s.github.io/formic-functions/)
 
-![dance floor ant GIF](https://i.stack.imgur.com/oyEfT.gif)
+![dance floor ant GIF](https://i.stack.imgur.com/7xiOD.gif)
 
 <sup>Not actual game footage.</sup>
 
@@ -43,3 +43,7 @@ Zoom view also has a marker for Worker Type (same as the marker icon, drawn belo
 ![Zoom hover](https://i.stack.imgur.com/Jll5I.png)
 
 Hover over ants to see their faction name, type, and food amount
+
+##Leaderboard
+
+[Leaderboad available at Trichoplax's master branch](https://github.com/trichoplax/formic-functions/blob/master/README.md#leaderboard)

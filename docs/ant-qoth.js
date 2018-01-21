@@ -1543,10 +1543,14 @@ function loadFromCookie() {
 	gamesPlayed = getCookie(decodedCookie, "gamesPlayed");
 	if(gamesPlayed == 0) return;//gamesPlayed = 1;
 	players.forEach(function(player) {
-		player.score = [0, 0, 0]
-		player.games = [0, 0, 0]
-		player.scorePerGame = [0, 0, 0]
-		
+		player.score = []
+		player.games = []
+		player.scorePerGame = []
+		for (var t=0; t<numberOfLeaderboards+1; t++) {
+			player.score.push(0)
+			player.games.push(0)
+			player.scorePerGame.push(0)
+		}
 		var scores = getCookie(decodedCookie, player.id +"_score");
 		//console.log(player.id + ":" + scores);
 		var s = scores.split(',');

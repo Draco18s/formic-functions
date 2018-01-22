@@ -1613,6 +1613,8 @@ function loadFromCookie() {
 	});
 	$('#reset_leaderboard').prop('disabled', false);
 	setTimeout(function() {
+		updateLeaderboardPositions();
+		displayLeaderboard();
 		$('#run_ongoing_tournament').trigger('click');
 	}, 1000);
 }
@@ -1642,8 +1644,6 @@ function getCookie(decodedCookie, cname) {
         }
     }
     return "";
-	updateLeaderboardPositions()
-	displayLeaderboard()
 }
 
 function sortLeaderboard() {	//	Sort by scorePerGame, then by id if scorePerGame equal.

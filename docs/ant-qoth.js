@@ -62,6 +62,7 @@ function setGlobals() {
 	processingStartTime = 0
 	debug = $('#debug').prop('checked')
 	pauseDebug = $('#pauseDebug').prop('checked')
+	mapEdit = $('#mapEdit').prop('checked')
 	doPauseAfter = $('#doPauseAfter').prop('checked')
 	pauseAfterNMoves = parseInt($('#moves_before_pause').val(), 10)
 	currentAntIndex = 0
@@ -595,8 +596,43 @@ function initialiseInterface() {
 			displayArena()
 		}
 	})
-	$('#display_canvas').click(function() {
-		zoomLocked = !zoomLocked
+	$('#display_canvas').click(function(event) {
+		if(mapEdit) {
+			var ratio = arenaWidth/displayCanvas.width;
+			var cellSize = (zoomCanvas.width / zoomCellsPerSide) / ratio;
+			var offset = zoomCellsPerSide / 2;
+			var Lll = (zoomedAreaCentreX - offset + arenaWidth) % arenaWidth;
+			var Ttt = (zoomedAreaCentreY - offset + arenaHeight) % arenaHeight;
+			offset = zoomCellsPerSide * cellSize;
+			if(zoomOnLeft) {
+				offset = 0;
+			}
+			else {
+				offset = (arenaWidth/ratio) - offset;
+			}
+			var posX = (event.offsetX - offset);
+			var posY = Math.floor((event.offsetY / cellSize) + Ttt);
+			if(posX >= 0 && posX <= 500) {
+				posX = Math.floor((posX / cellSize) + Lll);
+				var cell = arena[posX + posY*arenaWidth];
+				if(cell !=  null) {
+					if(event.ctrlKey) {
+						cell.food = 1 - cell.food;
+					}
+					else {
+						var c = cell.color-1;
+						c = (c+(event.shiftKey?7:1))%8;
+						cell.color = c+1;
+					}
+				}
+			}
+			else {
+				zoomLocked = !zoomLocked
+			}
+		}
+		else {
+			zoomLocked = !zoomLocked
+		}
 	})
 	$('.show_when_no_display').hide()
 	$('#restore_display').click(function() {
@@ -634,6 +670,9 @@ function initialiseInterface() {
 	})
 	$('#pauseDebug').change(function() {
 		pauseDebug = $('#pauseDebug').prop('checked')
+	})
+	$('#mapEdit').change(function() {
+		mapEdit = $('#mapEdit').prop('checked')
 	})
 	$('#doPauseAfter').change(function() {
 		doPauseAfter = $('#doPauseAfter').prop('checked')
@@ -1554,19 +1593,16 @@ function loadFromCookie() {
 		var scores = getCookie(decodedCookie, player.id +"_score");
 		//console.log(player.id + ":" + scores);
 		var s = scores.split(',');
-		player.score[0] = parseInt(s[0], 10);
-		player.score[1] = parseInt(s[1], 10);
-		player.score[2] = parseInt(s[2], 10);
+		for (var t=0; t<numberOfLeaderboards+1; t++) {
+			player.score[t] = parseInt(s[t], 10);
+		}
 		var gamess = getCookie(decodedCookie, player.id +"_games");
 		//console.log(player.id + ":" + gamess);
 		var g = gamess.split(',');
-		player.games[0] = parseInt(g[0], 10);
-		player.games[1] = parseInt(g[1], 10);
-		player.games[2] = parseInt(g[2], 10);
-		
-		player.scorePerGame[0] = player.games[0] > 0 ? player.score[0] / player.games[0] : 0
-		player.scorePerGame[1] = player.games[1] > 0 ? player.score[1] / player.games[1] : 0
-		player.scorePerGame[2] = player.games[2] > 0 ? player.score[2] / player.games[2] : 0
+		for (var t=0; t<numberOfLeaderboards+1; t++) {
+			player.games[t] = parseInt(g[t], 10);
+			player.scorePerGame[t] = player.games[t] > 0 ? player.score[t] / player.games[t] : 0;
+		}
 		
 		var inc = getCookie(decodedCookie, player.id +"_inc");
 		

@@ -571,10 +571,10 @@ function initialiseInterface() {
 			}
 			var posX = (event.offsetX - offset);
 			var posY = Math.floor((event.offsetY / cellSize) + Ttt);
+            var tool = $("#tooltip");
 			if(posX >= 0 && posX <= 500) {
 				posX = Math.floor((posX / cellSize) + Lll);
 				var cell = arena[posX + posY*arenaWidth];
-				var tool = $("#tooltip");
 				if(cell !=  null && cell.ant != null) {
 					tool.css("display","block");
 					tool.css("left",event.pageX+8);
@@ -624,6 +624,7 @@ function initialiseInterface() {
 						c = (c+(event.shiftKey?7:1))%8;
 						cell.color = c+1;
 					}
+                    displayArena();
 				}
 			}
 			else {

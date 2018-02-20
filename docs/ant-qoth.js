@@ -44,6 +44,7 @@ function confirmRefresh() {
 }
 
 function setGlobals() {
+	logMemoCache = false;
 	qid = 135102
 	site = 'codegolf'
 	players = []
@@ -1218,7 +1219,7 @@ function processAnts() {
 		timeSoFar = performance.now() - processingStartTime
 		averageMoveTime = timeSoFar / antMovesSoFar
 		timeRemaining = frameLengthTarget - timeSoFar
-		if (timeRemaining < averageMoveTime && continuousMoves || (doPauseAfter && moveCounter == pauseAfterNMoves)) {
+		if (timeRemaining < averageMoveTime && continuousMoves || (doPauseAfter && moveCounter == pauseAfterNMoves && currentAntIndex == 0)) {
 			break
 		}
 		if (!continuousMoves) {
@@ -1629,6 +1630,7 @@ function loadFromCookie() {
 	});
 	$('#reset_leaderboard').prop('disabled', false);
 	setTimeout(function() {
+		$('#reset_leaderboard').prop('disabled', false)
 		updateLeaderboardPositions();
 		displayLeaderboard();
 		$('#run_ongoing_tournament').trigger('click');
@@ -1908,7 +1910,8 @@ function getMoveMemoiser(f) {
 			} else { // cache miss
 				var result = f(ant, rotatedView)
 				if (cache.youngEntriesPerHue[hue] >= 5000) {
-					console.log(ant.player.title + " cache management: purging hue " + hue)
+					if(logMemoCache)
+						console.log(ant.player.title + " cache management: purging hue " + hue)
 					cache.youngGenPerHue[hue] = {}
 					cache.youngEntriesPerHue[hue] = 0
 				}
@@ -1921,6 +1924,7 @@ function getMoveMemoiser(f) {
 }
 
 function printMemoCache(player) {
+	if(!logMemoCache) return;
     var cache = player.antCache
     console.log("Memo cache for " + player.title + ":")
     console.log("- tenured entries:     " + cache.tenuredEntries)

@@ -1599,6 +1599,11 @@ function loadFromCookie() {
 	console.log(document.cookie);
 	gamesPlayed = getCookie(decodedCookie, "gamesPlayed");
 	if(gamesPlayed == 0) return;//gamesPlayed = 1;
+	if (gamesPlayed === 1) {
+		$('#game_counter').html('1 game played.')
+	} else {
+		$('#game_counter').html(gamesPlayed + ' games played.')
+	}
 	players.forEach(function(player) {
 		player.score = []
 		player.games = []

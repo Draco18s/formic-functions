@@ -497,6 +497,7 @@ function initialiseInterface() {
 	$('#no_display').click(function() {
 		$('.hide_when_no_display').hide(300)
 		$('.show_when_no_display').show(300)
+		$('#play').trigger('click');
 		display = false
 		continuousMoves = true
 		frameLengthTarget = noDisplayFrameLengthTarget
@@ -587,7 +588,7 @@ function initialiseInterface() {
             var tool = $("#tooltip");
 			if(posX >= 0 && posX <= 500) {
 				posX = Math.floor((posX / cellSize) + Lll);
-				var cell = arena[posX + posY*arenaWidth];
+				var cell = arena[(posX%arenaWidth) + (posY%arenaHeight)*arenaWidth];
 				if(cell !=  null && cell.ant != null) {
 					tool.css("display","block");
 					tool.css("left",event.pageX+8);

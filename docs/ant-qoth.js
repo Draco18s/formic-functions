@@ -14,6 +14,12 @@ function load() {
 	// Pauses the game (just like hitting the 'pause' button)
 	console.pause = function() {
 		console.log("PAUSE");
+		if(!display) {
+			$('.show_when_no_display').hide(0)
+			$('.hide_when_no_display').show(0)
+			display = true
+			batchSize = 1
+		}
 		$('#pause').trigger('click');
 	};
 

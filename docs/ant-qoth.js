@@ -22,6 +22,13 @@ function load() {
 		}
 		$('#pause').trigger('click');
 	};
+	
+	console.printView = function(conditions) {
+		if(console.lastView != "")
+			if(conditions == null || conditions(console.lastView[4].ant)) {
+				console.log(JSON.stringify(console.lastView));
+		}
+	}
 
 	// Sets the game step delay to a new value
 	console.setDelay = function(value) {
@@ -761,6 +768,7 @@ function initialiseInterface() {
 					if (player.id === 0) {
 						parameters.console = console
 					}
+					console.lastView = ""
 					//$('#response').val(JSON.stringify(parsedInput));
 					response = maskedEval(player.antFunction, parameters);
 				} catch(e) {
@@ -1958,6 +1966,7 @@ function getMove(ant, rotatedView) {
 	var player = ant.player
 	var antFunction = player.antFunction
 	var parameters = {}
+	console.lastView = rotatedView;
 	parameters.view = rotatedView
 	if (player.id === 0) {
 		parameters.console = console
